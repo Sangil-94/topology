@@ -115,7 +115,6 @@ function Get_NodeInfo(){
 
 		$.each(json, function(idx, obj){
 
-			// original
 			if(NodeInfo[idx].Status == NODE_AIR){
 				return true;
 			}
@@ -282,7 +281,10 @@ function Get_NodeCount() {
 		method : "POST",
 		url : 'mysql_nodes_gateways_script.php',
 		data : {
-			mode : "hop_count"
+			mode : "hop_count",
+			pan1 : Cluster[0].AP.PanID,
+			pan2 : Cluster[1].AP.PanID,
+			pan3 : Cluster[2].AP.PanID
 		},
 	}).done(function(data) {
 		var json = $.parseJSON(data);
@@ -293,6 +295,9 @@ function Get_NodeCount() {
 			document.getElementById("1hop").innerText = obj["1hop"] + "개";
 			document.getElementById("2hop").innerText = obj["2hop"] + "개";
 			document.getElementById("3hop").innerText = obj["3hop"] + "개";
+			document.getElementById("pan1").innerText = obj["pan1"] + "개";
+			document.getElementById("pan2").innerText = obj["pan2"] + "개";
+			document.getElementById("pan3").innerText = obj["pan3"] + "개";
 		});
 	});
 }

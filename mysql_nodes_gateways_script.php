@@ -157,7 +157,7 @@ else if($_POST[mode]=="select_router"){
   $msg = str_replace("},]", "}]", $msg);
 }
 else if($_POST[mode] == "hop_count") {
-  $query ="SELECT COUNT(CASE WHEN treedepth!=0 THEN 1 END) AS hop, COUNT(CASE WHEN treedepth=1 THEN 1 END) AS 1hop, COUNT(CASE WHEN treedepth=2 THEN 1 END) AS 2hop, COUNT(CASE WHEN treedepth=3 THEN 1 END) AS 3hop FROM node;";
+  $query ="SELECT COUNT(CASE WHEN treedepth!=0 THEN 1 END) AS hop, COUNT(CASE WHEN treedepth=1 THEN 1 END) AS 1hop, COUNT(CASE WHEN treedepth=2 THEN 1 END) AS 2hop, COUNT(CASE WHEN treedepth=3 THEN 1 END) AS 3hop, COUNT(CASE WHEN panid=32769 AND treedepth>0 THEN 1 END) AS pan1, COUNT(CASE WHEN panid=36865 AND treedepth>0 THEN 1 END) AS pan2, COUNT(CASE WHEN panid=40961 AND treedepth>0 THEN 1 END) AS pan3 FROM node;";
   $result = mysql_query($query);
   $msg .= "[";
 
