@@ -1,4 +1,4 @@
-const reloadtimeinterval = 5*1000;	// msec
+const RELOAD_TIME_INTERVAL = 5*1000;	// msec
 
 const NODE_DEFAULT = -1;
 const NODE_NRR = 0;
@@ -60,6 +60,7 @@ function init_var(){
 			},
 			
 			Status : NODE_DEFAULT,
+			Expect : NODE_DEFAULT
 		}
 	}
 
@@ -115,59 +116,22 @@ function Get_NodeInfo(){
 
 		$.each(json, function(idx, obj){
 
-			if(NodeInfo[idx].Status == NODE_AIR){
+			var node = NodeInfo[idx];
+
+			if(node.Status == NODE_DONE) {
 				return true;
-			}
-
-			switch (parseInt(obj.panid)) {
-
-				case Cluster[0].AP.PanID:
-				
-					NodeInfo[idx].UI_Node.PanIndex = 0;
-
-					break;
-
-				case Cluster[1].AP.PanID:
-					
-					NodeInfo[idx].UI_Node.PanIndex = 1;
-					
-					break;
-
-				case Cluster[2].AP.PanID:
-					
-					NodeInfo[idx].UI_Node.PanIndex = 2;
-					
-					break;
-
-				default:
-					
-					return true;
-
-			}
-
-			NodeInfo[idx].Node.Idx = parseInt(obj.idx);
-
-			if(NodeInfo[idx].Node.Idx > 0){
-				Calculate_NodeIdx(idx);
-			}
-
-			NodeInfo[idx].Node.PanID = parseInt(obj.panid);
-			NodeInfo[idx].Node.ShortID = parseInt(obj.shortid);
-			NodeInfo[idx].Node.ParentShortID = parseInt(obj.parentshortid);
-
-			if(NodeInfo[idx].Node.ParentShortID > 0){
-				Get_RouterIdx(idx, parseInt(obj.parentshortid), parseInt(obj.panid));
-			}
-
-			NodeInfo[idx].Node.dt_nrr = obj.dt_nrr;
-			NodeInfo[idx].Node.dt_air = obj.dt_air;
-			
-			if(obj.dt_nrr > '0000-00-00 00:00:00'){
-				NodeInfo[idx].Status = NODE_NRR;
-			}
-
-			if(obj.dt_air > '0000-00-00 00:00:00' ){
-				NodeInfo[idx].Status = NODE_AIR;
+			} else if(node.Status == NODE_CBR && obj["dt_cbr"] != "0000-00-00 00:00:00") {
+				node.Node.dt_cbr = obj["dt_cbr"];
+				node.Status = NODE_DONE;
+			} else if(node.Status == NODE_AIR && obj["dt_air"] != "0000-00-00 00:00:00") {
+				node.Node.dt_air = obj["dt_air"];
+				node.Status = NODE_CBR;
+			} else if(node.Status == NODE_NRR && obj["dt_nrr"] != "0000-00-00 00:00:00") {
+				node.Node.dt_nrr = obj["dt_nrr"];
+				node.Status = NODE_AIR;
+			} else {
+				Init_NodeInfo(node, obj, idx);
+				node.Status = NODE_NRR;
 			}
 
 		});
@@ -181,6 +145,50 @@ function Get_NodeInfo(){
 		alert("Fail : " + textStatus);
 	});
 	
+}
+
+function Init_NodeInfo(node, obj, idx) {
+
+	switch (parseInt(obj.panid)) {
+
+		case Cluster[0].AP.PanID:
+		
+			node.UI_Node.PanIndex = 0;
+
+			break;
+
+		case Cluster[1].AP.PanID:
+			
+			node.UI_Node.PanIndex = 1;
+			
+			break;
+
+		case Cluster[2].AP.PanID:
+			
+			node.UI_Node.PanIndex = 2;
+			
+			break;
+
+		default:
+			
+			return;
+
+	}
+
+	node.Node.Idx = parseInt(obj.idx);
+
+	if(node.Node.Idx > 0){
+		Calculate_NodeIdx(idx);
+	}
+
+	node.Node.PanID = parseInt(obj.panid);
+	node.Node.ShortID = parseInt(obj.shortid);
+	node.Node.ParentShortID = parseInt(obj.parentshortid);
+
+	if(node.Node.ParentShortID > 0){
+		Get_RouterIdx(idx, parseInt(obj.parentshortid), parseInt(obj.panid));
+	}
+
 }
 
 function Calculate_NodeIdx(index){
@@ -306,34 +314,36 @@ function Update_UI_Node(){
 		
 	for(var i=0; i < nodes.length; i++){
 
-		if(NodeInfo[i].Status == NODE_DEFAULT){
+		var node = NodeInfo[i];
+
+		if(node.Status == NODE_DEFAULT || node.Status == NODE_DONE){
 			continue;
 		}
 		
-		changeNodeBorderColorStatus(NodeInfo[i].UI_Node.NodeIndex);
-		changeNodeBkgColorStatus(NodeInfo[i].UI_Node.NodeIndex, NodeInfo[i].UI_Node.PanIndex);
+		changeNodeBorderColorStatus(node.UI_Node.NodeIndex);
+		changeNodeBkgColorStatus(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
 
 		if(nodeTexts[i].text() == "") {
-			nodeTexts[i] = setObjectText( draw, nodes[NodeInfo[i].UI_Node.NodeIndex], "" + NodeInfo[i].Node.ShortID);
+			nodeTexts[i] = setObjectText( draw, nodes[node.UI_Node.NodeIndex], "" + node.Node.ShortID);
 			nodeTexts[i].fill(COLOR_DEFAULT);
 			nodeTexts[i].front();	
 		}
 
-		if(NodeInfo[i].Status == NODE_NRR){
+		if(node.Status == NODE_NRR){
 			continue;
 		}
 
 		//2-Hop Check
-		if(NodeInfo[i].UI_Node.RouterIndex > -1){
+		if(node.UI_Node.RouterIndex > -1){
 
-			setNodeToNodeLink(NodeInfo[i].UI_Node.NodeIndex, NodeInfo[i].UI_Node.RouterIndex, NodeInfo[i].UI_Node.PanIndex);
-			nodeTexts[NodeInfo[i].UI_Node.RouterIndex].front();
-			gatewayTexts[NodeInfo[i].UI_Node.PanIndex].front();
+			setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex);
+			nodeTexts[node.UI_Node.RouterIndex].front();
+			gatewayTexts[node.UI_Node.PanIndex].front();
 
 		}else{
 
-			setNodeToGatewayLink(NodeInfo[i].UI_Node.NodeIndex, NodeInfo[i].UI_Node.PanIndex);
-			gatewayTexts[NodeInfo[i].UI_Node.PanIndex].front();
+			setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
+			gatewayTexts[node.UI_Node.PanIndex].front();
 			
 		}
 		
@@ -376,6 +386,6 @@ function reloadData(){
 
 	setTimeout(
 		reloadData,
-		reloadtimeinterval
+		RELOAD_TIME_INTERVAL
 	);
 }
