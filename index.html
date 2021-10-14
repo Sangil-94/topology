@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title> Topology </title>
+
+		<!--<script src="http://code.jquery.com/jquery-latest.min.js"></script>-->
+		<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.7.1/svg.js"></script>-->
+		<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.7.1/svg.min.js"></script>-->
+		<script type="text/javascript" src="./jQuery/jquery-1.12.3.min.js"></script>
+		<script type="text/javascript" src="./svg/svg.js"></script>
+		<script src="./draw.js"></script>
+
+		
+		<link rel="stylesheet" type="text/css" href="./css/node_line_connection.css" media="screen" />
+
+
+	</head>
+
+	<body>
+		<div id="Topology">
+			<div id="table" style="position:absolute; bottom:300px; right:120px;">
+				<table>
+					<thead>
+						<th>전체노드수</th>
+						<th>연결노드수</th>
+						<th>1홉노드수</th>
+						<th>2홉노드수</th>
+						<th>3홉노드수</th>
+					</thead>
+					<tbody>
+						<tr>
+							<td>160개</td>
+							<td id="hop"></td>
+							<td id="1hop"></td>
+							<td id="2hop"></td>
+							<td id="3hop"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<img src="./img/ci_png/signature_4.png" style="position:fixed; bottom:100px; right:100px; width:450px;">
+		<script type="text/javascript" src="draw_nodes_gateways.js"></script>
+		<script type="text/javascript" src="mysql_nodes_gateways.js"></script>
+		<!-- <script type="text/javascript" src="event_nodes_gateways.js"></script> -->
+	</body>
+</html>
+
+

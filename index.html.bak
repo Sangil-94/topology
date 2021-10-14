@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title> Topology </title>
+
+		<!--<script src="http://code.jquery.com/jquery-latest.min.js"></script>-->
+		<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.7.1/svg.js"></script>-->
+		<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.7.1/svg.min.js"></script>-->
+		<script type="text/javascript" src="./jQuery/jquery-1.12.3.min.js"></script>
+		<script type="text/javascript" src="./svg/svg.js"></script>
+		<script src="./draw.js"></script>
+
+		
+		<link rel="stylesheet" type="text/css" href="./css/node_line_connection.css" media="screen" />
+
+
+		
+
+	</head>
+
+
+
+	<body>
+		<div id="Topology" style="backgroud-image:url('./posco_pohang.png');" ></div>
+		<script type="text/javascript" src="draw_nodes_gateways.js"></script>
+		<script type="text/javascript" src="mysql_nodes_gateways.js"></script>
+		<!-- <script type="text/javascript" src="event_nodes_gateways.js"></script> -->
+		
+	</body>
+</html>
+
+
