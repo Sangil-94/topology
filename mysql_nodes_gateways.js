@@ -14,7 +14,7 @@ const DEVICETYPE_ROUTER = 1;
 const DEVICETYPE_NODE = 2;
 
 var Cluster = {};
-var NodeInfo = {};
+var NodeInfo = [];
 
 $(document).ready(function() {
 	
@@ -364,9 +364,16 @@ function Update_UI_Node() {
 				nodeTexts[node.UI_Node.RouterIndex].front();
 				gatewayTexts[node.UI_Node.PanIndex].front();
 				
-				//const parentsIndex = NodeInfo.findIndex(findnode => findnode.Node.ShortID === node.Node.ParentShortID)
-				const parentsNode = NodeInfo[NodeInfo.findIndex(findnode => findnode.Node.ShortID === node.Node.ParentShortID)];
-				console.log("Parents's NodeInfo: " + parentsNode.Node);
+				const parentsNodeIndex = NodeInfo.findIndex(function(findnode, index, arr){
+					return (findnode.Node.ShortID === node.Node.ParentShortID) && (findnode.Node.PanID === node.Node.PanID)
+				});
+				const parentsNode = NodeInfo[parentsNodeIndex];
+				// var parentsNode;
+				// for(var i=0; i<NodeInfo.length; i++) {
+				// 	if(NodeInfo[i].Node.ShortID == node.Node.ParentShortID && NodeInfo[i].Node.PanID == node.Node.PanID) {
+				// 		parentsNode = NodeInfo[i];
+				// 	}
+				// }
 
 				if(parentsNode.Node.ParentShortID > 0) {
 					setDataMoveAnimation(nodes[parentsNode.UI_Node.NodeIndex], nodes[parentsNode.UI_Node.RouterIndex], MULTI_HOP);
