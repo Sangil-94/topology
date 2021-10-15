@@ -68,7 +68,7 @@ function clickGateway(gatewayObject)
 }
 
 
-function setNodeToNodeLink(srcNodeIndex, dstNodeIndex, gatewayIndex)
+function setNodeToNodeLink(srcNodeIndex, dstNodeIndex, gatewayIndex, type)
 {
 	if( nodeLines[srcNodeIndex] != null)
 		return;
@@ -80,8 +80,10 @@ function setNodeToNodeLink(srcNodeIndex, dstNodeIndex, gatewayIndex)
 	setLineColor(nodeLines[ srcNodeIndex ], gatewayColors[gatewayIndex]);
 
 	setObjectColor(nodes[ srcNodeIndex ], gatewayColors[gatewayIndex]);
-
-	setDataMoveAnimation(nodes[srcNodeIndex], nodes[dstNodeIndex]);
+	
+	if(type == NODE_CBR) {
+		setDataMoveAnimation(nodes[srcNodeIndex], nodes[dstNodeIndex]);
+	}
 
 }
 
@@ -99,7 +101,7 @@ function setGatewayToGatewayLink(srcGatewayIndex, dstGatewayIndex)
 	setDataMoveAnimation(gateways[srcGatewayIndex], gateways[dstGatewayIndex], "router");
 }
 
-function setNodeToGatewayLink(inputNodeIndex, inputGatewayIndex)
+function setNodeToGatewayLink(inputNodeIndex, inputGatewayIndex, type)
 {
 	if( nodeLines[inputNodeIndex] != null) {
 		if(nodeLines[inputNodeIndex].inputNodeIndex==inputNodeIndex
@@ -121,7 +123,9 @@ function setNodeToGatewayLink(inputNodeIndex, inputGatewayIndex)
 	setLineColor(nodeLines[ inputNodeIndex ], gatewayColors[inputGatewayIndex]);
 	setObjectColor(nodes[ inputNodeIndex ], gatewayColors[inputGatewayIndex]);
 
-	setDataMoveAnimation(nodes[inputNodeIndex], gateways[inputGatewayIndex], "normal");
+	if(type==NODE_CBR) {
+		setDataMoveAnimation(nodes[inputNodeIndex], gateways[inputGatewayIndex], "normal");
+	}
     
 	nodeLines[inputNodeIndex].inputNodeIndex = inputNodeIndex;
 	nodeLines[inputNodeIndex].inputGatewayIndex = inputGatewayIndex;

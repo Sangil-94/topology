@@ -1,4 +1,4 @@
-const RELOAD_TIME_INTERVAL = 5*1000;	// msec
+const RELOAD_TIME_INTERVAL = 3*1000;	// msec
 
 const NODE_DEFAULT = -1;
 const NODE_NRR = 0;
@@ -8,7 +8,6 @@ const NODE_DONE = 3;
 
 var Cluster = {};
 var NodeInfo = {};
-
 
 $(document).ready(function() {
 	
@@ -113,27 +112,26 @@ function Get_NodeInfo(){
 	}).done(function(data){
 
 		var json = $.parseJSON(data);
-
+		
 		$.each(json, function(idx, obj){
 
 			var node = NodeInfo[idx];
 
 			if(node.Status == NODE_DONE) {
-				return true;
-			} else if(node.Status == NODE_CBR && obj["dt_cbr"] != "0000-00-00 00:00:00") {
+			} else if(node.Expect == NODE_CBR && obj["dt_cbr"] != "0000-00-00 00:00:00") {
 				node.Node.dt_cbr = obj["dt_cbr"];
-				node.Status = NODE_DONE;
-			} else if(node.Status == NODE_AIR && obj["dt_air"] != "0000-00-00 00:00:00") {
-				node.Node.dt_air = obj["dt_air"];
 				node.Status = NODE_CBR;
-			} else if(node.Status == NODE_NRR && obj["dt_nrr"] != "0000-00-00 00:00:00") {
-				node.Node.dt_nrr = obj["dt_nrr"];
+				node.Expect = NODE_DONE;
+			} else if(node.Expect == NODE_AIR && obj["dt_air"] != "0000-00-00 00:00:00") {
+				node.Node.dt_air = obj["dt_air"];
 				node.Status = NODE_AIR;
-			} else {
+				node.Expect = NODE_CBR;
+			} else if(node.Status == NODE_DEFAULT && obj["dt_nrr"] != "0000-00-00 00:00:00") {
 				Init_NodeInfo(node, obj, idx);
+				node.Node.dt_nrr = obj["dt_nrr"];
 				node.Status = NODE_NRR;
+				node.Expect = NODE_AIR;
 			}
-
 		});
 
 		$("body").css("cursor", "default");
@@ -315,36 +313,38 @@ function Update_UI_Node(){
 	for(var i=0; i < nodes.length; i++){
 
 		var node = NodeInfo[i];
-
+		//console.log(node.Status + ", " + node.Node.dt_nrr+ ", " + node.Node.dt_air+ ", " + node.Node.dt_cbr);
 		if(node.Status == NODE_DEFAULT || node.Status == NODE_DONE){
 			continue;
-		}
-		
-		changeNodeBorderColorStatus(node.UI_Node.NodeIndex);
-		changeNodeBkgColorStatus(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
+		} else if (node.Status == NODE_NRR && node.Node.dt_nrr > "0000-00-00 00:00:00") {
+			changeNodeBorderColorStatus(node.UI_Node.NodeIndex);
+			changeNodeBkgColorStatus(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
 
-		if(nodeTexts[i].text() == "") {
-			nodeTexts[i] = setObjectText( draw, nodes[node.UI_Node.NodeIndex], "" + node.Node.ShortID);
-			nodeTexts[i].fill(COLOR_DEFAULT);
-			nodeTexts[i].front();	
-		}
-
-		if(node.Status == NODE_NRR){
-			continue;
-		}
-
-		//2-Hop Check
-		if(node.UI_Node.RouterIndex > -1){
-
-			setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex);
-			nodeTexts[node.UI_Node.RouterIndex].front();
-			gatewayTexts[node.UI_Node.PanIndex].front();
-
-		}else{
-
-			setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
-			gatewayTexts[node.UI_Node.PanIndex].front();
-			
+			if(nodeTexts[i].text() == "") {
+				nodeTexts[i] = setObjectText( draw, nodes[node.UI_Node.NodeIndex], "" + node.Node.ShortID);
+				nodeTexts[i].fill(COLOR_DEFAULT);
+				nodeTexts[i].front();	
+			}
+		} else if (node.Status == NODE_AIR && node.Node.dt_air > "0000-00-00 00:00:00") {
+			//2-Hop Check
+			if(node.UI_Node.RouterIndex > -1){
+				setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex, NODE_AIR);
+				nodeTexts[node.UI_Node.RouterIndex].front();
+				gatewayTexts[node.UI_Node.PanIndex].front();
+			}else{
+				setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex, NODE_AIR);
+				gatewayTexts[node.UI_Node.PanIndex].front();
+			}
+		} else if (node.Status == NODE_CBR && node.Node.dt_cbr > "0000-00-00 00:00:00") {
+			//2-Hop Check
+			if(node.UI_Node.RouterIndex > -1){
+				setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex, NODE_CBR);
+				nodeTexts[node.UI_Node.RouterIndex].front();
+				gatewayTexts[node.UI_Node.PanIndex].front();
+			}else{
+				setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex, NODE_CBR);
+				gatewayTexts[node.UI_Node.PanIndex].front();
+			}
 		}
 		
 	}
