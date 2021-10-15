@@ -2,10 +2,10 @@
 {
   stroke-width: 2;
   stroke-dasharray: 2000;
-  stroke-dashoffset: 1000;
+  stroke-dashoffset: 2000;
   -webkit-animation: dash 1.0s linear forwards;	
   -moz-animation: dash 1.0s linear forwards;
-  animation: dash 1.0s linear forwards;
+  animation: dash 5s linear forwards;
 }
 
 @-webkit-keyframes dash {

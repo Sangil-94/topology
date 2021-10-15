@@ -101,7 +101,7 @@ else if($_POST[mode]=="select_nodes") {
 }
 // dt_gar 찾기
 else if($_POST[mode]=="select_nodeinfo") {
-  $query = " SELECT idx, panid, shortid, parentshortid, rx_noderegistrationrequest AS dt_nrr, rx_allocationinforesponse AS dt_air, rx_testcbr AS dt_cbr
+  $query = " SELECT idx, panid, shortid, parentshortid, devicetype, rx_noderegistrationrequest AS dt_nrr, rx_allocationinforesponse AS dt_air, rx_testcbr AS dt_cbr
   FROM node WHERE shortid > 0 ";
   $query .= $query_where; 
   $query .= " ORDER BY idx ASC";

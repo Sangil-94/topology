@@ -1,10 +1,17 @@
 const RELOAD_TIME_INTERVAL = 3*1000;	// msec
 
 const NODE_DEFAULT = -1;
-const NODE_NRR = 0;
-const NODE_AIR = 1;
-const NODE_CBR = 2;
-const NODE_DONE = 3;
+const NODE_DONE = 1;
+
+const NODE_AIR = 0;
+const NODE_CBR = 1;
+
+const ONE_HOP = 0;
+const MULTI_HOP = 1;
+
+const DEVICETYPE_PNC = 0;
+const DEVICETYPE_ROUTER = 1;
+const DEVICETYPE_NODE = 2;
 
 var Cluster = {};
 var NodeInfo = {};
@@ -21,9 +28,9 @@ $(document).ready(function() {
 
 } );
 
-function init_var(){
+function init_var() {
 
-	for(var i=0; i<gateways.length; i++){
+	for(var i=0; i<gateways.length; i++) {
 
 		Cluster[i]= 
 		{
@@ -38,7 +45,7 @@ function init_var(){
 	Cluster[1].AP.PanID = 36865;
 	Cluster[2].AP.PanID = 40961;
 
-	for(var i=0; i<nodes.length; i++){
+	for(var i=0; i<nodes.length; i++) {
 
 		NodeInfo[i]=
 		{
@@ -47,6 +54,7 @@ function init_var(){
 				PanID : -1,
 				ShortID : -1,
 				ParentShortID : -1,
+				DeviceType : -1,
 				dt_nrr : '0000-00-00 00:00:00',
 				dt_air : '0000-00-00 00:00:00',
 				dt_cbr : '0000-00-00 00:00:00'
@@ -58,14 +66,13 @@ function init_var(){
 				RouterIndex : -1,
 			},
 			
-			Status : NODE_DEFAULT,
-			Expect : NODE_DEFAULT
+			Status : NODE_DEFAULT
 		}
 	}
 
 }
 
-function Check_Pan(){
+function Check_Pan() {
 
 	$("body").css("cursor", "progress");
 
@@ -100,7 +107,7 @@ function Check_Pan(){
 
 }
 
-function Get_NodeInfo(){
+function Get_NodeInfo() {
 
 	$("body").css("cursor", "progress");
 	$.ajax({
@@ -117,21 +124,12 @@ function Get_NodeInfo(){
 
 			var node = NodeInfo[idx];
 
-			if(node.Status == NODE_DONE) {
-			} else if(node.Expect == NODE_CBR && obj["dt_cbr"] != "0000-00-00 00:00:00") {
-				node.Node.dt_cbr = obj["dt_cbr"];
-				node.Status = NODE_CBR;
-				node.Expect = NODE_DONE;
-			} else if(node.Expect == NODE_AIR && obj["dt_air"] != "0000-00-00 00:00:00") {
-				node.Node.dt_air = obj["dt_air"];
-				node.Status = NODE_AIR;
-				node.Expect = NODE_CBR;
-			} else if(node.Status == NODE_DEFAULT && obj["dt_nrr"] != "0000-00-00 00:00:00") {
-				Init_NodeInfo(node, obj, idx);
-				node.Node.dt_nrr = obj["dt_nrr"];
-				node.Status = NODE_NRR;
-				node.Expect = NODE_AIR;
-			}
+			if(node.Node.dt_cbr != "0000-00-00 00:00:00") {
+				return true;
+			} 
+			
+			Set_NodeInfo(node, obj, idx);
+
 		});
 
 		$("body").css("cursor", "default");
@@ -145,7 +143,7 @@ function Get_NodeInfo(){
 	
 }
 
-function Init_NodeInfo(node, obj, idx) {
+function Set_NodeInfo(node, obj, idx) {
 
 	switch (parseInt(obj.panid)) {
 
@@ -182,14 +180,18 @@ function Init_NodeInfo(node, obj, idx) {
 	node.Node.PanID = parseInt(obj.panid);
 	node.Node.ShortID = parseInt(obj.shortid);
 	node.Node.ParentShortID = parseInt(obj.parentshortid);
+	node.Node.DeviceType = parseInt(obj.devicetype);
 
 	if(node.Node.ParentShortID > 0){
 		Get_RouterIdx(idx, parseInt(obj.parentshortid), parseInt(obj.panid));
 	}
 
+	node.Node.dt_nrr = obj['dt_nrr'];
+	node.Node.dt_air = obj['dt_air'];
+	node.Node.dt_cbr = obj['dt_cbr'];
 }
 
-function Calculate_NodeIdx(index){
+function Calculate_NodeIdx(index) {
 
 	$("body").css("cursor", "progress");
 
@@ -219,7 +221,7 @@ function Calculate_NodeIdx(index){
 	
 }
 
-function Calculate_RouterIdx(index, routerIdx){
+function Calculate_RouterIdx(index, routerIdx) {
 
 
 	$("body").css("cursor", "progress");
@@ -249,7 +251,7 @@ function Calculate_RouterIdx(index, routerIdx){
 
 }
 
-function Get_RouterIdx(index, parentshortid, panid){
+function Get_RouterIdx(index, parentshortid, panid) {
 
 	if(NodeInfo[index].UI_Node.RouterIndex > 0){
 		return;
@@ -308,43 +310,79 @@ function Get_NodeCount() {
 	});
 }
 
-function Update_UI_Node(){
+function Update_UI_Node() {
 		
 	for(var i=0; i < nodes.length; i++){
 
 		var node = NodeInfo[i];
+
 		//console.log(node.Status + ", " + node.Node.dt_nrr+ ", " + node.Node.dt_air+ ", " + node.Node.dt_cbr);
-		if(node.Status == NODE_DEFAULT || node.Status == NODE_DONE){
+
+		if(node.Status == NODE_DONE){
 			continue;
-		} else if (node.Status == NODE_NRR && node.Node.dt_nrr > "0000-00-00 00:00:00") {
+		}
+
+		if (node.Node.dt_nrr > "0000-00-00 00:00:00") {
 			changeNodeBorderColorStatus(node.UI_Node.NodeIndex);
 			changeNodeBkgColorStatus(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
 
 			if(nodeTexts[i].text() == "") {
 				nodeTexts[i] = setObjectText( draw, nodes[node.UI_Node.NodeIndex], "" + node.Node.ShortID);
 				nodeTexts[i].fill(COLOR_DEFAULT);
-				nodeTexts[i].front();	
+				nodeTexts[i].front();
 			}
-		} else if (node.Status == NODE_AIR && node.Node.dt_air > "0000-00-00 00:00:00") {
+			
+			if(node.Node.DeviceType == DEVICETYPE_ROUTER) {
+				if(node.Node.ParentShortID > 0) {
+					setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex);
+					nodeTexts[node.UI_Node.RouterIndex].front();
+					gatewayTexts[node.UI_Node.PanIndex].front();
+				} else if(node.Node.ParentShortID == 0) {
+					setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
+					gatewayTexts[node.UI_Node.PanIndex].front();
+				}
+			}
+		}
+
+		if (node.Node.dt_air > "0000-00-00 00:00:00") {
 			//2-Hop Check
-			if(node.UI_Node.RouterIndex > -1){
-				setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex, NODE_AIR);
+			if(node.Node.ParentShortID > 0) {
+				setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex);
 				nodeTexts[node.UI_Node.RouterIndex].front();
 				gatewayTexts[node.UI_Node.PanIndex].front();
 			}else{
-				setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex, NODE_AIR);
+				setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex);
 				gatewayTexts[node.UI_Node.PanIndex].front();
 			}
-		} else if (node.Status == NODE_CBR && node.Node.dt_cbr > "0000-00-00 00:00:00") {
+		}
+
+		if (node.Node.dt_cbr > "0000-00-00 00:00:00") {
 			//2-Hop Check
-			if(node.UI_Node.RouterIndex > -1){
-				setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex, NODE_CBR);
+			if(node.Node.ParentShortID > 0) {
+				//setNodeToNodeLink(node.UI_Node.NodeIndex, node.UI_Node.RouterIndex, node.UI_Node.PanIndex, NODE_CBR);
+				setDataMoveAnimation(nodes[node.UI_Node.NodeIndex], nodes[node.UI_Node.RouterIndex], MULTI_HOP);
 				nodeTexts[node.UI_Node.RouterIndex].front();
 				gatewayTexts[node.UI_Node.PanIndex].front();
+				
+				//const parentsIndex = NodeInfo.findIndex(findnode => findnode.Node.ShortID === node.Node.ParentShortID)
+				const parentsNode = NodeInfo[NodeInfo.findIndex(findnode => findnode.Node.ShortID === node.Node.ParentShortID)];
+				console.log("Parents's NodeInfo: " + parentsNode.Node);
+
+				if(parentsNode.Node.ParentShortID > 0) {
+					setDataMoveAnimation(nodes[parentsNode.UI_Node.NodeIndex], nodes[parentsNode.UI_Node.RouterIndex], MULTI_HOP);
+					nodeTexts[parentsNode.UI_Node.RouterIndex].front();
+					gatewayTexts[parentsNode.UI_Node.PanIndex].front();
+				} else {
+					setDataMoveAnimation(nodes[parentsNode.UI_Node.NodeIndex], gateways[parentsNode.UI_Node.PanIndex], ONE_HOP);
+					gatewayTexts[parentsNode.UI_Node.PanIndex].front();
+				}
+
 			}else{
-				setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex, NODE_CBR);
+				//setNodeToGatewayLink(node.UI_Node.NodeIndex, node.UI_Node.PanIndex, NODE_CBR);
+				setDataMoveAnimation(nodes[node.UI_Node.NodeIndex], gateways[node.UI_Node.PanIndex], ONE_HOP);
 				gatewayTexts[node.UI_Node.PanIndex].front();
 			}
+			node.Status = NODE_DONE;
 		}
 		
 	}
@@ -372,7 +410,7 @@ function changeNodeBkgColorStatus(nodeIndex, gatewayIndex){
 	setObjectColor(nodes[nodeIndex], gatewayColors[gatewayIndex]);
 }
 
-function reloadData(){
+function reloadData() {
 
 	Check_Pan();
 	

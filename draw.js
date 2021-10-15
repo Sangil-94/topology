@@ -68,7 +68,7 @@ function clickGateway(gatewayObject)
 }
 
 
-function setNodeToNodeLink(srcNodeIndex, dstNodeIndex, gatewayIndex, type)
+function setNodeToNodeLink(srcNodeIndex, dstNodeIndex, gatewayIndex)
 {
 	if( nodeLines[srcNodeIndex] != null)
 		return;
@@ -80,11 +80,11 @@ function setNodeToNodeLink(srcNodeIndex, dstNodeIndex, gatewayIndex, type)
 	setLineColor(nodeLines[ srcNodeIndex ], gatewayColors[gatewayIndex]);
 
 	setObjectColor(nodes[ srcNodeIndex ], gatewayColors[gatewayIndex]);
-	
+	/*
 	if(type == NODE_CBR) {
 		setDataMoveAnimation(nodes[srcNodeIndex], nodes[dstNodeIndex]);
 	}
-
+	*/
 }
 
 function setGatewayToGatewayLink(srcGatewayIndex, dstGatewayIndex)
@@ -101,7 +101,7 @@ function setGatewayToGatewayLink(srcGatewayIndex, dstGatewayIndex)
 	setDataMoveAnimation(gateways[srcGatewayIndex], gateways[dstGatewayIndex], "router");
 }
 
-function setNodeToGatewayLink(inputNodeIndex, inputGatewayIndex, type)
+function setNodeToGatewayLink(inputNodeIndex, inputGatewayIndex)
 {
 	if( nodeLines[inputNodeIndex] != null) {
 		if(nodeLines[inputNodeIndex].inputNodeIndex==inputNodeIndex
@@ -122,11 +122,13 @@ function setNodeToGatewayLink(inputNodeIndex, inputGatewayIndex, type)
 	
 	setLineColor(nodeLines[ inputNodeIndex ], gatewayColors[inputGatewayIndex]);
 	setObjectColor(nodes[ inputNodeIndex ], gatewayColors[inputGatewayIndex]);
-
-	if(type==NODE_CBR) {
+	
+	/*
+	if(type == NODE_CBR) {
 		setDataMoveAnimation(nodes[inputNodeIndex], gateways[inputGatewayIndex], "normal");
 	}
-    
+	*/
+
 	nodeLines[inputNodeIndex].inputNodeIndex = inputNodeIndex;
 	nodeLines[inputNodeIndex].inputGatewayIndex = inputGatewayIndex;
 
@@ -157,7 +159,7 @@ function setDataMoveAnimation(srcObject, dstObject, type)
 
     for (var i = 0 ; i < DATAMOVE_NUMBER ; i++)
     {
-		if(type=="normal") {
+		if(type==ONE_HOP) {
 			circles[i] = draw.circle(DATAMOVE_CIRCLE_DIAMETER).center( srcObject.cx(), srcObject.cy() ).fill({color : COLOR_DATAMOVE_CIRCLE});
 		} else {
 			circles[i] = draw.circle(DATAMOVE_CIRCLE_DIAMETER).center( srcObject.cx(), srcObject.cy() ).fill({color : COLOR_DATAMOVE_ROUTER});
